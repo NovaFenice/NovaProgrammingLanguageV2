@@ -1,7 +1,7 @@
 exec = Nova
 sources = $(wildcard src/*.c)
 objects = $(sources:.c=.o)
-flags = -g
+flags = -g -Iinclude
 
 $(exec): $(objects)
 	gcc $(objects) $(flags) -o $(exec) -O2

@@ -25,16 +25,34 @@ void lexer_skip_whitespace(lexer_T* lexer) {
     }
 }
 
+int is_keyword(const char* str) {
+    return strcmp(str, "int") == 0 || strcmp(str, "float") == 0 || strcmp(str, "double") == 0 ||
+           strcmp(str, "char") == 0 || strcmp(str, "string") == 0 || strcmp(str, "bool") == 0;
+}
+
+int get_keyword_token_type(const char* str) {
+    if (strcmp(str, "int") == 0) return TOKEN_INT;
+    if (strcmp(str, "float") == 0) return TOKEN_FLOAT;
+    if (strcmp(str, "double") == 0) return TOKEN_DOUBLE;
+    if (strcmp(str, "char") == 0) return TOKEN_CHAR;
+    if (strcmp(str, "string") == 0) return TOKEN_STRING;
+    if (strcmp(str, "bool") == 0) return TOKEN_BOOL;
+    return TOKEN_ID;
+}
+
 token_T* lexer_collect_id(lexer_T* lexer) {
     char buffer[BUFFER_SIZE];
-    int buffer_index = 0;
+    int len = 0;
 
-    while (isalnum(lexer->c) && buffer_index < BUFFER_SIZE - 1) {
-        buffer[buffer_index++] = lexer->c;
+    while (isalnum(lexer->c) && len < BUFFER_SIZE - 1) {
+        buffer[len++] = lexer->c;
         lexer_advance(lexer);
     }
+    buffer[len] = '\0';
 
-    buffer[buffer_index] = '\0';
+    if (is_keyword(buffer)) {
+        return init_token(get_keyword_token_type(buffer), strdup(buffer));
+    }
 
     return init_token(TOKEN_ID, strdup(buffer));
 }
@@ -50,22 +68,27 @@ token_T* lexer_get_next_token(lexer_T* lexer) {
         }
 
         switch (lexer->c) {
-            case '=': return lexer_advance_with_token(lexer, init_token(TOKEN_EQUALS, strdup("=")));
-            case ';': return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, strdup(";")));
-            case '(': return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, strdup("(")));
-            case ')': return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, strdup(")")));
-            case '[': return lexer_advance_with_token(lexer, init_token(TOKEN_LSPAREN, strdup("[")));
-            case ']': return lexer_advance_with_token(lexer, init_token(TOKEN_RSPAREN, strdup("]")));
-            case '{': return lexer_advance_with_token(lexer, init_token(TOKEN_LBRACKETS, strdup("{")));
-            case '}': return lexer_advance_with_token(lexer, init_token(TOKEN_RBRACKETS, strdup("}")));
-            case '>': return lexer_advance_with_token(lexer, init_token(TOKEN_BIGGER, strdup(">")));
-            case '<': return lexer_advance_with_token(lexer, init_token(TOKEN_LESS, strdup("<")));
-            case ',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, strdup(",")));
+            case '=': return lexer_advance_with_token(lexer, init_token(TOKEN_EQUALS, "="));
+            case ';': return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, ";"));
+            case '(': return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, "("));
+            case ')': return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, ")"));
+            case '[': return lexer_advance_with_token(lexer, init_token(TOKEN_LSPAREN, "["));
+            case ']': return lexer_advance_with_token(lexer, init_token(TOKEN_RSPAREN, "]"));
+            case '{': return lexer_advance_with_token(lexer, init_token(TOKEN_LBRACKETS, "{"));
+            case '}': return lexer_advance_with_token(lexer, init_token(TOKEN_RBRACKETS, "}"));
+            case '>': return lexer_advance_with_token(lexer, init_token(TOKEN_BIGGER, ">"));
+            case '<': return lexer_advance_with_token(lexer, init_token(TOKEN_LESS, "<"));
+            case ',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, ","));
+            case '!': return lexer_advance_with_token(lexer, init_token(TOKEN_NOT, "!"));
+            case '+': return lexer_advance_with_token(lexer, init_token(TOKEN_PLUS, "+"));
+            case '-': return lexer_advance_with_token(lexer, init_token(TOKEN_MINUS, "-"));
+            case '*': return lexer_advance_with_token(lexer, init_token(TOKEN_MUL, "*"));
+            case '/': return lexer_advance_with_token(lexer, init_token(TOKEN_DIV, "/"));
         }
 
         lexer_advance(lexer);
     }
-    return NULL;
+    return init_token(TOKEN_E0F, "");
 }
 
 token_T* lexer_collect_string_value(lexer_T* lexer) {
